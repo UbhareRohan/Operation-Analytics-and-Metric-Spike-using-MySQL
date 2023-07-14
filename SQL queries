@@ -1,0 +1,167 @@
+-- OPERATION ANALYTICS
+
+-- Q1) Calculate the number of jobs reviewed per hour per day for November 2020?
+select ds as dates , 
+round((count(job_id)/sum(time_spent))*3600) 
+as 'jobs reviewed per hr per day' from job_data
+where ds between '2020-11-01' 
+and '2020-11-30'
+group by ds;
+
+-- 2) Calculate 7 day rolling average of throughput? 
+select round(count(event_)/sum(time_spent),2) as 
+'weekly throughput' from job_data;
+
+-- 3) Calculate the percentage share of each language in the last 30 days?
+select language_ , round(100*count(*)/total, 2) 
+as percentage from job_data
+cross join (select count(*) as total 
+from job_data)sub
+group by language_;
+
+-- Q4) Let’s say you see some duplicate rows in the data. How will you display duplicates from the table?
+select actor_id, count(*) as Duplicates 
+from job_data
+group by actor_id
+having Duplicates>1;
+
+
+
+-- INVESTIGATING METRIC SPIKE
+
+use m_spike;
+-- Q1) Calculate the weekly user engagement?
+select extract(week from occured_at) as'week numbers', 
+count(distinct(user_id)) as 'weekly active users' 
+from events
+where event_type='engagement'
+group by 1;
+
+-- Q2) Calculate the user growth for product?
+
+select Months, Users, round(((Users/lag(Users, 1) 
+over(order by Months)-1)*100),2) as 'Growth in %'
+from
+(select extract(month from created_at) as Months, 
+count(activated_at) as Users
+from users_
+where
+activated_at between '2013-01-01' and '2014-08-31'
+group by 1
+order by 1
+)sub;
+
+
+-- Q3) Calculate the weekly retention of users-sign up cohort?
+select first as 'week numbers',
+sum(case when week_number=0 then 1 else 0 end) as 'week 0',
+sum(case when week_number=1 then 1 else 0 end) as 'week 1',
+sum(case when week_number=2 then 1 else 0 end) as 'week 2',
+sum(case when week_number=3 then 1 else 0 end) as 'week 3',
+sum(case when week_number=4 then 1 else 0 end) as 'week 4',
+sum(case when week_number=5 then 1 else 0 end) as 'week 5',
+sum(case when week_number=6 then 1 else 0 end) as 'week 6',
+sum(case when week_number=7 then 1 else 0 end) as 'week 7',
+sum(case when week_number=8 then 1 else 0 end) as 'week 8',
+sum(case when week_number=9 then 1 else 0 end) as 'week 9',
+sum(case when week_number=10 then 1 else 0 end) as 'week 10',
+sum(case when week_number=11 then 1 else 0 end) as 'week 11',
+sum(case when week_number=12 then 1 else 0 end) as 'week 12',
+sum(case when week_number=13 then 1 else 0 end) as 'week 13',
+sum(case when week_number=14 then 1 else 0 end) as 'week 14',
+sum(case when week_number=15 then 1 else 0 end) as 'week 15',
+sum(case when week_number=16 then 1 else 0 end) as 'week 16',
+sum(case when week_number=17 then 1 else 0 end) as 'week 17',
+sum(case when week_number=18 then 1 else 0 end) as 'week 18' from
+(select m.user_id, m.login_week, n.first, m.login_week-first as week_number
+from 
+(select user_id, extract(week from occured_at) as login_week from events
+group by 1,2)m,
+(select user_id, min(extract(week from occured_at)) as first from events
+group by 1)n
+where m.user_id=n.user_id
+)sub
+group by first
+order by first;
+
+
+-- 4) Calculate the weekly engagement per device?
+select extract(week from occured_at) as 'week numbers',
+count(distinct case when device in('dell inspiron notebook') then user_id else
+null end) as 'Dell Inspiron Notebook',
+count(distinct case when device in('iphone 5') then user_id else
+null end) as 'iphone 5',
+count(distinct case when device in('iphone 4s') then user_id else
+null end) as 'iphone 4s',
+count(distinct case when device in('windows surface') then user_id else
+null end) as 'windows surface',
+count(distinct case when device in('macbook air') then user_id else
+null end) as 'macbook air',
+count(distinct case when device in('iphone 5s') then user_id else
+null end) as 'iphone 5s',
+count(distinct case when device in('macbook pro') then user_id else
+null end) as 'macbook pro',
+count(distinct case when device in('kindle fire') then user_id else
+null end) as 'kindle fire',
+count(distinct case when device in('ipad mini') then user_id else
+null end) as 'ipad mini',
+count(distinct case when device in('nexus 7') then user_id else
+null end) as 'nexus 7',
+count(distinct case when device in('nexus 5') then user_id else
+null end) as 'nexus 5',
+count(distinct case when device in('samsung galaxy s4') then user_id else
+null end) as 'samsung galaxy s4',
+count(distinct case when device in('lenovo thinkpad') then user_id else
+null end) as 'lenovo thinkpad',
+count(distinct case when device in('samsung galaxy tablet') then user_id else
+null end) as 'samsung galaxy tablet',
+count(distinct case when device in('acer aspire notebook') then user_id else
+null end) as 'acer aspire notebook',
+count(distinct case when device in('asus chromebook') then user_id else
+null end) as 'asus chromebook',
+count(distinct case when device in('htc one') then user_id else
+null end) as 'htc one',
+count(distinct case when device in('nokia lumia 635') then user_id else
+null end) as 'nokia lumia 635',
+count(distinct case when device in('samsung galaxy note') then user_id else
+null end) as 'samsung galaxy note',
+count(distinct case when device in('acer aspire desktop') then user_id else
+null end) as 'acer aspire desktop',
+count(distinct case when device in('mac mini') then user_id else
+null end) as 'mac mini',
+count(distinct case when device in('hp pavilion desktop') then user_id else
+null end) as 'hp pavilion desktop',
+count(distinct case when device in('dell inspiron desktop') then user_id else
+null end) as 'dell inspiron desktop',
+count(distinct case when device in('ipad air') then user_id else
+null end) as 'ipad air',
+count(distinct case when device in('amazon fire phone') then user_id else
+null end) as 'amazon fire phone',
+count(distinct case when device in('nexus 10') then user_id else
+null end) as 'nexus 10'
+from events 
+where event_type='engagement'
+group by 1
+order by 1;
+
+
+-- Q5) Calculate the email engagement metrics?
+
+select Week,
+round((weekly_digest/total*100),2) as 'Weekly digest rate', 
+round((email_opens/total*100),2) as 'Email_open rate', 
+round((email_clickthroughs/total*100),2) as 'Email_clickthrough rate', 
+round((reengagement_emails/total*100),2) as 'Sent_reengagement_emails rate' 
+from
+(
+select extract(week from occured_at) as Week,
+count(case when action_='sent_weekly_digest' then user_id else null end) as weekly_digest,
+count(case when action_='email_open' then user_id else null end) as email_opens,
+count(case when action_='email_clickthrough' then user_id else null end) as email_clickthroughs,
+count(case when action_='sent_reengagement_email' then user_id else null end) as reengagement_emails,
+count(user_id) as total 
+from email_events
+group by 1
+)sub 
+group by 1
+order by 1;
